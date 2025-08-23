@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand: #2a75bb;
+    --brand-600: #3c5aa6;
+    --accent: #ffcb05;
+  }
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    @apply min-h-dvh bg-slate-100 text-slate-900 antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: "Oxanium", system-ui, sans-serif;
+  }
+  body,
+  button,
+  input {
+    font-family: "Inter", system-ui, sans-serif;
+  }
+}
