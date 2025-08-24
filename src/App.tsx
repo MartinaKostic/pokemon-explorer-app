@@ -1,3 +1,5 @@
+import { PokemonGrid } from "./components/PokemonGrid";
+
 function App() {
   return (
     <div className="min-h-dvh bg-slate-50 text-slate-900">
@@ -6,7 +8,10 @@ function App() {
           Pokémon Explorer
         </div>
       </header>
-      <main className="container mx-auto px-4 py-6">Setup</main>
+      <main className="container mx-auto px-4 py-6">
+        Setup
+        <PokemonGrid></PokemonGrid>
+      </main>
     </div>
   );
 }
