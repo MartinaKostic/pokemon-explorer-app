@@ -5,6 +5,7 @@
     --brand: #2a75bb;
     --brand-600: #3c5aa6;
     --accent: #ffcb05;
+    --accent-soft: #ffe166;
   }
   html,
   body {
@@ -22,5 +23,27 @@
   button,
   input {
     font-family: "Inter", system-ui, sans-serif;
+  }
+}
+@layer components {
+  .card {
+    @apply relative w-full rounded-2xl bg-white p-3
+           shadow-sm ring-1 ring-slate-200
+           transition-transform duration-200 ease-out
+           hover:shadow-lg hover:ring-slate-300
+           motion-safe:hover:scale-[1.03] motion-safe:hover:-translate-y-0.5
+           hover:z-10 transform-gpu will-change-transform
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300
+           active:scale-[0.99]
+           motion-reduce:transform-none motion-reduce:transition-none;
+  }
+  .card-img {
+    @apply aspect-square w-full object-contain transition-transform duration-200 ease-out group-hover/card:scale-105;
+  }
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-lg px-3 py-2
+           font-medium border border-slate-300
+           hover:bg-slate-50 transition
+           disabled:opacity-50 disabled:pointer-events-none;
   }
 }
