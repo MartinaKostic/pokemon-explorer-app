@@ -3,11 +3,7 @@ import {
   useInfiniteQuery,
   useQuery,
 } from "@tanstack/react-query";
-import {
-  fetchPokemonById,
-  fetchPokemonPage,
-  fetchPokemonPageByUrl,
-} from "./pokemonApi";
+import { fetchPokemonPage, fetchPokemonPageByUrl } from "./pokemonApi";
 
 export function usePokemonPage(page = 0, pageSize = 24) {
   const offset = page * pageSize;
@@ -18,7 +14,8 @@ export function usePokemonPage(page = 0, pageSize = 24) {
     placeholderData: keepPreviousData,
   });
 }
-//inifinite scroll
+
+//infinite scroll
 export function usePokemonInfinite(pageSize = 24) {
   const first = `https://pokeapi.co/api/v2/pokemon?limit=${pageSize}&offset=0`;
 
@@ -30,5 +27,3 @@ export function usePokemonInfinite(pageSize = 24) {
     staleTime: 60_000,
   });
 }
-//optional
-export { fetchPokemonById };
