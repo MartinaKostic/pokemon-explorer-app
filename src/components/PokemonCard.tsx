@@ -7,9 +7,18 @@ type Props = {
   name: string;
   img: string;
   onOpen?: (id: number) => void;
+  types?: string[];
+  stats?: { hp: number; attack: number; defense: number };
 };
 
-export default function PokemonCard({ id, name, img, onOpen }: Props) {
+export default function PokemonCard({
+  id,
+  name,
+  img,
+  onOpen,
+  types,
+  stats,
+}: Props) {
   const [favourite, setFavourite] = useState(false);
 
   return (
@@ -22,10 +31,8 @@ export default function PokemonCard({ id, name, img, onOpen }: Props) {
           e.stopPropagation();
           setFavourite((v) => !v);
         }}
-        className="
-   group/fav absolute right-2 top-2 z-20 p-0 bg-transparent rounded-full
-    focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
-  "
+        className="group/fav absolute right-2 top-2 z-20 p-0 bg-transparent rounded-full
+    focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
       >
         <Star
           className={
@@ -44,9 +51,9 @@ export default function PokemonCard({ id, name, img, onOpen }: Props) {
       >
         <img src={img} alt={name} className="card-img" loading="lazy" />
         <span className="mt-1 block text-sm font-medium capitalize">
-          {name}
+          {name}-{id}
         </span>
-        <PokemonCardInfo id={id} />
+        <PokemonCardInfo id={id} types={types} stats={stats} />
       </button>
     </article>
   );

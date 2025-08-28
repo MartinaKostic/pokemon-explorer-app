@@ -1,10 +1,21 @@
 import { TYPE_COLORS } from "../utils/pokemon";
 import { usePokemonDetails } from "../api/usePokemonDetails";
 
-export function PokemonCardInfo({ id }: { id: number }) {
-  const { data } = usePokemonDetails(id);
+type Props = {
+  id: number;
+  types?: string[];
+  stats?: { hp: number; attack: number; defense: number };
+};
 
-  if (!data) {
+export function PokemonCardInfo({
+  id,
+  types: preTypes,
+  stats: preStats,
+}: Props) {
+  const shouldFetch = !preTypes || !preStats;
+  const { data } = usePokemonDetails(shouldFetch ? id : undefined);
+
+  if (!preTypes && !preStats && !data) {
     return (
       <div className="mt-1 space-y-1">
         <div className="h-4 w-24 rounded bg-slate-100 animate-pulse" />
@@ -13,9 +24,15 @@ export function PokemonCardInfo({ id }: { id: number }) {
     );
   }
 
-  const types = data.types.map((t) => t.type.name);
-  const get = (n: string) =>
-    data.stats.find((s) => s.stat.name === n)?.base_stat ?? 0;
+  const types = preTypes ?? data?.types.map((t) => t.type.name) ?? [];
+  const get = (n: string) => {
+    if (preStats) {
+      if (n === "hp") return preStats.hp;
+      if (n === "attack") return preStats.attack;
+      if (n === "defense") return preStats.defense;
+    }
+    return data?.stats.find((s) => s.stat.name === n)?.base_stat ?? 0;
+  };
 
   return (
     <div className="mt-1 space-y-1">

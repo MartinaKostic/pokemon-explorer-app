@@ -27,7 +27,7 @@
 }
 @layer components {
   .card {
-    @apply relative w-full rounded-2xl bg-white p-3
+    @apply relative w-full rounded-2xl bg-white p-3 lg:p-4 xl:p-5
            shadow-sm ring-1 ring-slate-200
            transition-transform duration-200 ease-out
            hover:shadow-lg hover:ring-slate-300
@@ -41,9 +41,96 @@
     @apply aspect-square w-full object-contain transition-transform duration-200 ease-out group-hover/card:scale-105;
   }
   .btn {
-    @apply inline-flex items-center gap-2 rounded-lg px-3 py-2
-           font-medium border border-slate-300
+    @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 lg:px-4 lg:py-2.5
+           font-medium border border-slate-300 text-sm lg:text-base
            hover:bg-slate-50 transition
            disabled:opacity-50 disabled:pointer-events-none;
+  }
+}
+
+@layer utilities {
+  /* Dual-thumb range slider styles */
+  .dual-range input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    cursor: grab;
+    background: transparent;
+  }
+  .dual-range input[type="range"]:active {
+    cursor: grabbing;
+  }
+  .dual-range input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--brand);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    cursor: grab;
+    transition: all 150ms ease;
+  }
+  .dual-range input[type="range"]::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+  }
+  .dual-range input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.2),
+      0 0 0 4px rgba(42, 117, 187, 0.2);
+  }
+  .dual-range input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--brand);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    cursor: grab;
+    transition: all 150ms ease;
+    border: none; /* Remove default Firefox border */
+    -moz-appearance: none;
+  }
+  .dual-range input[type="range"]::-moz-range-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+  }
+  .dual-range input[type="range"]::-moz-range-thumb:hover {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.2),
+      0 0 0 4px rgba(42, 117, 187, 0.2);
+  }
+  .dual-range input[type="range"]::-ms-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--brand);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+  /* Hide default tracks for different engines */
+  .dual-range input[type="range"]::-webkit-slider-runnable-track {
+    background: transparent;
+    height: 0;
+  }
+  .dual-range input[type="range"]::-moz-range-track {
+    background: transparent;
+    height: 0;
+    border: none;
+  }
+  .dual-range input[type="range"]::-ms-track {
+    background: transparent;
+    border-color: transparent;
+    color: transparent;
+    height: 0;
+  }
+
+  /* Nudge bottom labels slightly below the track */
+  .dual-range > .text-xs[style*="bottom: 0"] {
+    bottom: -1rem !important;
   }
 }
