@@ -105,7 +105,6 @@ export const STAT_NAMES = {
   speed: "Speed",
 } as const;
 
-// URL parameter utilities
 export function filtersToURLParams(filters: PokemonFilters): URLSearchParams {
   const params = new URLSearchParams();
 
