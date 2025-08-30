@@ -13,6 +13,7 @@ type Props = {
   onClearFilters: () => void; // Add callback for clear filters
   onSortChange?: (sortOption: SortOption) => void; // Add callback for sort changes
   onPokemonSelect?: (id: number) => void; // Add callback for pokemon selection
+  includeIds?: Set<number>;
 };
 
 export function PokemonGridChooser({
@@ -23,6 +24,7 @@ export function PokemonGridChooser({
   onClearFilters,
   onSortChange,
   onPokemonSelect,
+  includeIds,
 }: Props) {
   const isMobile = useIsMobile();
 
@@ -32,8 +34,14 @@ export function PokemonGridChooser({
   const hasCustomSort = sortOption.field !== "none";
   const hasSearch = searchTerm.trim() !== "";
 
-  // Use the filtered grid if we have filters OR custom sorting OR search
-  if (useFilteredGrid || hasCustomSort || hasSearch) {
+  // Use the filtered grid if we have filters OR custom sorting OR search OR when includeIds is provided
+  if (
+    useFilteredGrid ||
+    hasCustomSort ||
+    hasSearch ||
+    isFilteringEnabled ||
+    includeIds
+  ) {
     return (
       <PokemonGridWithFilters
         filters={filters}
@@ -42,6 +50,7 @@ export function PokemonGridChooser({
         onClearFilters={onClearFilters}
         onSortChange={onSortChange}
         onPokemonSelect={onPokemonSelect}
+        includeIds={includeIds}
       />
     );
   }

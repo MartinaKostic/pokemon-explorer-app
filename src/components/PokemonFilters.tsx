@@ -14,20 +14,24 @@ type Props = {
   filters: PokemonFilters;
   onFiltersChange: (filters: PokemonFilters) => void;
   onApplyFilters?: () => void;
+  onApplyFiltersNow?: (next: PokemonFilters) => void;
   onClearFilters?: () => void;
   searchTerm: string;
   onSearchChange: (search: string) => void;
   hasActiveFilters?: boolean;
+  compact?: boolean;
 };
 
 export function PokemonFilters({
   filters,
   onFiltersChange,
   onApplyFilters,
+  onApplyFiltersNow,
   onClearFilters,
   searchTerm,
   onSearchChange,
   hasActiveFilters = false,
+  compact = false,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);
@@ -38,6 +42,7 @@ export function PokemonFilters({
     stats: true,
     abilities: true,
   });
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -75,11 +80,7 @@ export function PokemonFilters({
     updateFilters({ generations: newGenerations });
   };
 
-  const toggleTypeMatchMode = () => {
-    updateFilters({
-      typeMatchMode: filters.typeMatchMode === "any" ? "all" : "any",
-    });
-  };
+  // match mode controlled via segmented buttons below
 
   const toggleAbility = (ability: string) => {
     const newAbilities = filters.abilities.includes(ability)
@@ -133,7 +134,7 @@ export function PokemonFilters({
     ([min, max]) => min !== 1 || max !== 255
   ).length;
 
-  // Collapsible section with optional badge count + inline reset X
+  // Collapsible section with badge count + inline reset X
   const CollapsibleSection = ({
     title,
     isExpanded,
@@ -193,9 +194,12 @@ export function PokemonFilters({
   );
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-start">
-      {/* Search Field - Outside of dropdown */}
-      <div className="relative flex-1 min-w-0">
+    <div className="flex flex-row flex-wrap items-center gap-3">
+      <div
+        className={
+          compact ? "relative w-56 sm:w-64 md:w-80" : "relative flex-1 min-w-0"
+        }
+      >
         <Search
           size={16}
           className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
@@ -205,11 +209,12 @@ export function PokemonFilters({
           placeholder="Search Pokémon..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 text-base border border-slate-300 rounded-lg brand-focus"
+          className={`w-full pl-10 pr-3 py-2 text-base border rounded-lg brand-focus ${
+            searchTerm ? "border-[var(--brand)] bg-blue-50" : "border-slate-300"
+          }`}
         />
       </div>
 
-      {/* Filters Dropdown */}
       <div ref={filtersRef} className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -243,19 +248,14 @@ export function PokemonFilters({
               onClick={() => setIsOpen(false)}
             />
 
-            <div className="absolute top-full right-0 z-50 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-slate-200 max-h-[85vh] overflow-y-auto">
+            <div
+              ref={scrollContainerRef}
+              className="absolute top-full right-0 z-50 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-slate-200 max-h-[85vh] overflow-y-auto"
+            >
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-slate-200">
                 <h3 className="text-lg font-semibold">Filters</h3>
                 <div className="flex gap-3">
-                  {activeFiltersCount > 0 && (
-                    <button
-                      onClick={clearFilters}
-                      className="text-base text-slate-600 hover:text-slate-900"
-                    >
-                      Clear all
-                    </button>
-                  )}
                   <button
                     onClick={() => setIsOpen(false)}
                     className="text-slate-400 hover:text-slate-600"
@@ -265,9 +265,7 @@ export function PokemonFilters({
                 </div>
               </div>
 
-              {/* Sections */}
               <div className="p-4">
-                {/* Types */}
                 <CollapsibleSection
                   title="Types"
                   isExpanded={expandedSections.types}
@@ -275,27 +273,50 @@ export function PokemonFilters({
                   count={filters.types.length}
                   onReset={
                     filters.types.length
-                      ? () => updateFilters({ types: [], typeMatchMode: "any" })
+                      ? () => {
+                          const next = {
+                            ...filters,
+                            types: [],
+                            typeMatchMode: "any" as const,
+                          };
+                          if (onApplyFiltersNow) onApplyFiltersNow(next);
+                          else
+                            updateFilters({ types: [], typeMatchMode: "any" });
+                        }
                       : undefined
                   }
                 >
                   {filters.types.length > 1 && (
                     <div className="mb-3 flex items-center gap-2">
                       <span className="text-sm text-slate-600">
-                        Match mode:
+                        Match rule:
                       </span>
-                      <button
-                        onClick={toggleTypeMatchMode}
-                        className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                          filters.typeMatchMode === "any"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-orange-100 text-orange-700"
-                        }`}
-                      >
-                        {filters.typeMatchMode === "any"
-                          ? "ANY type"
-                          : "ALL types"}
-                      </button>
+                      <div className="inline-flex rounded-md border border-slate-300 overflow-hidden">
+                        <button
+                          className={`px-2 py-1 text-xs ${
+                            filters.typeMatchMode === "any"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-white text-slate-700 hover:bg-slate-50"
+                          }`}
+                          onClick={() =>
+                            updateFilters({ typeMatchMode: "any" })
+                          }
+                        >
+                          Any selected
+                        </button>
+                        <button
+                          className={`px-2 py-1 text-xs border-l border-slate-300 ${
+                            filters.typeMatchMode === "all"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-white text-slate-700 hover:bg-slate-50"
+                          }`}
+                          onClick={() =>
+                            updateFilters({ typeMatchMode: "all" })
+                          }
+                        >
+                          All selected
+                        </button>
+                      </div>
                     </div>
                   )}
                   <div className="flex flex-wrap gap-2">
@@ -322,7 +343,11 @@ export function PokemonFilters({
                   count={filters.generations.length}
                   onReset={
                     filters.generations.length
-                      ? () => updateFilters({ generations: [] })
+                      ? () => {
+                          const next = { ...filters, generations: [] };
+                          if (onApplyFiltersNow) onApplyFiltersNow(next);
+                          else updateFilters({ generations: [] });
+                        }
                       : undefined
                   }
                 >
@@ -356,7 +381,12 @@ export function PokemonFilters({
                               ([k, v]) => [k, [v[0], v[1]] as [number, number]]
                             )
                           ) as typeof filters.stats;
-                          updateFilters({ stats: resetStats });
+                          if (onApplyFiltersNow)
+                            onApplyFiltersNow({
+                              ...filters,
+                              stats: resetStats,
+                            });
+                          else updateFilters({ stats: resetStats });
                           setStatsResetTick((t) => t + 1);
                         }
                       : undefined
@@ -423,7 +453,11 @@ export function PokemonFilters({
                   count={filters.abilities.length}
                   onReset={
                     filters.abilities.length
-                      ? () => updateFilters({ abilities: [] })
+                      ? () => {
+                          const next = { ...filters, abilities: [] };
+                          if (onApplyFiltersNow) onApplyFiltersNow(next);
+                          else updateFilters({ abilities: [] });
+                        }
                       : undefined
                   }
                 >
@@ -431,10 +465,18 @@ export function PokemonFilters({
                     {COMMON_ABILITIES.map((ability) => (
                       <button
                         key={ability}
-                        onClick={() => toggleAbility(ability)}
+                        onClick={() => {
+                          const scroller = scrollContainerRef.current;
+                          const y = scroller ? scroller.scrollTop : 0;
+                          toggleAbility(ability);
+                          if (scroller)
+                            requestAnimationFrame(
+                              () => (scroller.scrollTop = y)
+                            );
+                        }}
                         className={`px-3 py-2 text-sm rounded-md capitalize transition-colors ${
                           filters.abilities.includes(ability)
-                            ? "bg-purple-500 text-white"
+                            ? "bg-amber-400 text-slate-900"
                             : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                         }`}
                       >
@@ -445,7 +487,7 @@ export function PokemonFilters({
                 </CollapsibleSection>
               </div>
 
-              <div className="border-t border-slate-200 p-4">
+              <div className="border-t border-slate-200 p-4 sticky bottom-0 bg-white">
                 <div className="flex gap-3 justify-end">
                   {hasActiveFilters && (
                     <button

@@ -14,6 +14,8 @@ export type PokemonDetail = {
   stats: { base_stat: number; stat: { name: string } }[];
   abilities: { ability: { name: string; url: string }; is_hidden: boolean }[];
   species: { name: string; url: string };
+  height: number; // in decimetres
+  weight: number; // in hectograms
 };
 
 export type PokemonFilters = {

@@ -32,8 +32,8 @@ export function PokemonGridDesktop({ onPokemonSelect }: Props) {
   const hasNext = data && "next" in data ? !!data.next : false;
 
   return (
-    <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 lg:gap-6">
+    <div className="min-h-[50vh] flex flex-col">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 lg:gap-6 flex-none">
         {data?.items.map((p) => (
           <PokemonCard
             key={p.id}
@@ -53,7 +53,9 @@ export function PokemonGridDesktop({ onPokemonSelect }: Props) {
         >
           Prev
         </button>
-        <span className="text-sm text-slate-600">Total: {totalCount}</span>
+        <span className="text-sm text-slate-600">
+          Page {page + 1} / {Math.max(1, Math.ceil(totalCount / pageSize))}
+        </span>
         <button
           className="btn"
           disabled={!hasNext}
@@ -62,6 +64,6 @@ export function PokemonGridDesktop({ onPokemonSelect }: Props) {
           Next
         </button>
       </div>
-    </>
+    </div>
   );
 }

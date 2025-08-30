@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { PokemonCardInfo } from "./PokemonCardInfo";
 import { Star } from "lucide-react";
+import { useFavorites } from "../hooks/useFavorites";
+import { PokemonCardInfo } from "./PokemonCardInfo";
 
 type Props = {
   id: number;
@@ -19,7 +19,8 @@ export default function PokemonCard({
   types,
   stats,
 }: Props) {
-  const [favourite, setFavourite] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favourite = isFavorite(id);
 
   return (
     <article className="group/card card" role="group">
@@ -29,7 +30,7 @@ export default function PokemonCard({
         aria-pressed={favourite}
         onClick={(e) => {
           e.stopPropagation();
-          setFavourite((v) => !v);
+          toggleFavorite(id);
         }}
         className="group/fav absolute right-2 top-2 z-20 p-0 bg-transparent rounded-full
     focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
@@ -51,7 +52,7 @@ export default function PokemonCard({
       >
         <img src={img} alt={name} className="card-img" loading="lazy" />
         <span className="mt-1 block text-sm font-medium capitalize">
-          {name}-{id}
+          {name}
         </span>
         <PokemonCardInfo id={id} types={types} stats={stats} />
       </button>
