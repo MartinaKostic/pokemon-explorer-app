@@ -4,10 +4,12 @@ import { PokemonGridChooser } from "./components/PokemonGridChooser";
 import { PokemonFilters } from "./components/PokemonFilters";
 import { SortControls } from "./components/SortControls";
 import { PokemonModal } from "./components/PokemonModal";
+import { PokemonLogo } from "./components/PokemonLogo";
 import { useFiltersAndSort } from "./hooks/useFiltersAndSort";
-import { X } from "lucide-react";
+import { X, Search } from "lucide-react";
 import { useFavorites } from "./hooks/useFavorites";
 import { NotFound } from "./components/NotFound";
+import { SEARCH_DEBOUNCE_MS } from "./constants";
 
 function App() {
   const {
@@ -58,7 +60,7 @@ function App() {
     window.history.replaceState({}, "", newUrl);
   }, [searchTerm]);
 
-  const debouncedSearch = useDebouncedValue(searchTerm, 400);
+  const debouncedSearch = useDebouncedValue(searchTerm, SEARCH_DEBOUNCE_MS);
 
   const path = window.location.pathname;
   const isKnownPath = path === "/" || path === "/index.html";
@@ -66,44 +68,63 @@ function App() {
   const handlePokemonSelect = (id: number) => setSelectedPokemonId(id);
   const handleModalClose = () => setSelectedPokemonId(null);
 
+  const handleLogoClick = () => {
+    clearFilters();
+    setSearchTerm("");
+    window.history.pushState({}, "", "/");
+  };
+
   return (
-    <div className="min-h-dvh bg-slate-50 text-slate-900">
+    <div className="min-h-dvh bg-blue-50 text-slate-900 font-sans">
       {!isKnownPath ? (
         <NotFound />
       ) : (
         <>
-          <header className="border-b bg-white/80 backdrop-blur">
+          <header className="bg-blue-50/80 backdrop-blur">
             <div className="container mx-auto px-4 py-3 font-semibold">
               <div className="flex items-center justify-between gap-3">
-                <span>Pokémon Explorer</span>
+                <PokemonLogo onClick={handleLogoClick} />
               </div>
             </div>
           </header>
 
           <main className="container mx-auto px-4 py-6 max-w-none xl:max-w-screen-2xl 2xl:px-16 3xl:px-24">
             <div className="mb-6">
-              <div className="flex items-center gap-3 mb-4 flex-wrap">
-                <PokemonFilters
-                  filters={filters}
-                  onFiltersChange={updateFilters}
-                  onApplyFilters={applyFilters}
-                  onApplyFiltersNow={applyFiltersNow}
-                  onClearFilters={clearFilters}
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  hasActiveFilters={hasActiveFilters}
-                  compact
-                />
-                <SortControls
-                  sortOption={sortOption}
-                  onSortChange={updateSort}
-                />
-                <div className="flex-1" />
-                <FavoritesToggle
-                  active={showFavoritesOnly}
-                  count={favoritesCount}
-                  onToggle={() => setShowFavoritesOnly((v) => !v)}
-                />
+              <div className="mb-4">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                  <div className="w-full lg:flex-1 lg:max-w-md order-1">
+                    <SearchInput
+                      searchTerm={searchTerm}
+                      onSearchChange={setSearchTerm}
+                    />
+                  </div>
+
+                  <div className="flex gap-3 order-2">
+                    <div className="flex-1 lg:flex-none">
+                      <PokemonFilters
+                        filters={filters}
+                        onFiltersChange={updateFilters}
+                        onApplyFilters={applyFilters}
+                        onApplyFiltersNow={applyFiltersNow}
+                        onClearFilters={clearFilters}
+                        hasActiveFilters={hasActiveFilters}
+                      />
+                    </div>
+                    <div className="flex-1 lg:flex-none">
+                      <SortControls
+                        sortOption={sortOption}
+                        onSortChange={updateSort}
+                      />
+                    </div>
+                    <div className="flex-1 lg:flex-none">
+                      <FavoritesToggle
+                        active={showFavoritesOnly}
+                        count={favoritesCount}
+                        onToggle={() => setShowFavoritesOnly((v) => !v)}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {(hasAppliedFilters || searchTerm) && (
@@ -195,6 +216,32 @@ function App() {
 
 export default App;
 
+function SearchInput({
+  searchTerm,
+  onSearchChange,
+}: {
+  searchTerm: string;
+  onSearchChange: (search: string) => void;
+}) {
+  return (
+    <div className="relative w-full">
+      <Search
+        size={16}
+        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
+      />
+      <input
+        type="text"
+        placeholder="Search Pokémon..."
+        value={searchTerm}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className={`w-full pl-10 pr-3 py-2 lg:py-2.5 text-sm lg:text-base border rounded-lg brand-focus h-10 lg:h-11 ${
+          searchTerm ? "border-[var(--brand)] bg-blue-50" : "border-slate-300"
+        }`}
+      />
+    </div>
+  );
+}
+
 function FavoritesToggle({
   active,
   count,
@@ -207,7 +254,7 @@ function FavoritesToggle({
   return (
     <button
       type="button"
-      className="btn"
+      className="btn w-full justify-center"
       aria-pressed={active}
       aria-label={active ? "Showing favorites only" : "Show favorites only"}
       title={active ? "Showing favorites" : "Show favorites"}

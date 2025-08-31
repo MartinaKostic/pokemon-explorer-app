@@ -1,6 +1,8 @@
 import { useState } from "react";
 import PokemonCard from "./PokemonCard";
 import { usePokemonPage } from "../api/usePokemonList";
+import { DESKTOP_PAGE_SIZE } from "../constants";
+import { ErrorDisplay } from "./ErrorDisplay";
 
 type Props = {
   onPokemonSelect?: (id: number) => void;
@@ -8,16 +10,25 @@ type Props = {
 
 export function PokemonGridDesktop({ onPokemonSelect }: Props) {
   const [page, setPage] = useState(0);
-  const pageSize = 30;
 
-  const { data, isError, isLoading } = usePokemonPage(page, pageSize);
+  const { data, isError, isLoading, refetch } = usePokemonPage(
+    page,
+    DESKTOP_PAGE_SIZE
+  );
 
-  if (isError) return <p className="text-red-600">Failed to load.</p>;
+  if (isError) {
+    return (
+      <ErrorDisplay
+        message="Failed to load Pokemon. Please try again."
+        onRetry={() => refetch()}
+      />
+    );
+  }
 
   if (isLoading && !data) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 lg:gap-6">
-        {Array.from({ length: pageSize }).map((_, i) => (
+        {Array.from({ length: DESKTOP_PAGE_SIZE }).map((_, i) => (
           <div key={i} className="card animate-pulse">
             <div className="aspect-square bg-slate-200 rounded mb-2" />
             <div className="h-4 bg-slate-200 rounded mb-1" />
@@ -54,7 +65,8 @@ export function PokemonGridDesktop({ onPokemonSelect }: Props) {
           Prev
         </button>
         <span className="text-sm text-slate-600">
-          Page {page + 1} / {Math.max(1, Math.ceil(totalCount / pageSize))}
+          Page {page + 1} /{" "}
+          {Math.max(1, Math.ceil(totalCount / DESKTOP_PAGE_SIZE))}
         </span>
         <button
           className="btn"

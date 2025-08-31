@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import { FAVORITES_STORAGE_KEY } from "../constants";
 
 export type FavoritesContextValue = {
   favorites: Set<number>;
@@ -13,7 +14,7 @@ export const FavoritesContext = createContext<
   FavoritesContextValue | undefined
 >(undefined);
 
-export const STORAGE_KEY = "pokemon:favorites";
+export const STORAGE_KEY = FAVORITES_STORAGE_KEY;
 
 export function readStorage<T>(key: string, fallback: T): T {
   try {

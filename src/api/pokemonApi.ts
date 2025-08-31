@@ -4,8 +4,7 @@ import type {
   PokemonListItem,
 } from "../types/pokemon";
 import { artworkUrl } from "../utils/pokemon";
-
-const API = "https://pokeapi.co/api/v2";
+import { API_BASE_URL, ERROR_MESSAGES } from "../constants";
 
 function mapList(data: PokemonListAPI, limit: number, offset: number) {
   const items: PokemonListItem[] = data.results.map((r) => {
@@ -23,15 +22,17 @@ function mapList(data: PokemonListAPI, limit: number, offset: number) {
 }
 
 export async function fetchPokemonPage(limit = 24, offset = 0) {
-  const res = await fetch(`${API}/pokemon?limit=${limit}&offset=${offset}`);
-  if (!res.ok) throw new Error("Failed to fetch Pokemon list");
+  const res = await fetch(
+    `${API_BASE_URL}/pokemon?limit=${limit}&offset=${offset}`
+  );
+  if (!res.ok) throw new Error(ERROR_MESSAGES.POKEMON_LIST_FETCH);
   const data: PokemonListAPI = await res.json();
   return mapList(data, limit, offset);
 }
 
 export async function fetchPokemonPageByUrl(url: string) {
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch Pokemon list");
+  if (!res.ok) throw new Error(ERROR_MESSAGES.POKEMON_LIST_FETCH);
   const data: PokemonListAPI = await res.json();
 
   const u = new URL(url);
@@ -42,7 +43,7 @@ export async function fetchPokemonPageByUrl(url: string) {
 }
 
 export async function fetchPokemonById(id: number): Promise<PokemonDetail> {
-  const res = await fetch(`${API}/pokemon/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch Pokemon");
+  const res = await fetch(`${API_BASE_URL}/pokemon/${id}`);
+  if (!res.ok) throw new Error(ERROR_MESSAGES.POKEMON_DETAIL_FETCH);
   return res.json();
 }

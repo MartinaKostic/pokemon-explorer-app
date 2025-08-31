@@ -49,9 +49,15 @@ export function SortControls({ sortOption, onSortChange }: Props) {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setIsOpen(!isOpen)} className="btn">
-        <span className="text-sm font-medium">
+    <div className="relative w-full" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="btn justify-between w-full"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+      >
+        <span className="text-sm font-medium lg:hidden">Sort</span>
+        <span className="hidden lg:inline text-sm font-medium">
           {sortOption.field === "none"
             ? "Sort: Default Order"
             : `Sort: ${currentOption?.label} (${dirLabel(sortOption.field, sortOption.direction)})`}
@@ -62,7 +68,7 @@ export function SortControls({ sortOption, onSortChange }: Props) {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 min-w-[200px]">
+        <div className="absolute top-full left-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 min-w-[200px] max-w-[calc(100vw-2rem)]">
           {SORT_OPTIONS.map((option) => (
             <div
               key={option.field}

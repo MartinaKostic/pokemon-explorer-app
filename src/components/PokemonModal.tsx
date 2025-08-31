@@ -3,6 +3,7 @@ import { X, Star } from "lucide-react";
 import { usePokemonDetails } from "../api/usePokemonDetails";
 import { artworkUrl, statBarColorHex, TYPE_COLORS } from "../utils/pokemon";
 import { useFavorites } from "../hooks/useFavorites";
+import { ErrorDisplay } from "./ErrorDisplay";
 
 type Props = {
   pokemonId: number | null;
@@ -14,6 +15,7 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
     data: pokemon,
     isLoading,
     isError,
+    refetch,
   } = usePokemonDetails(pokemonId || undefined);
   const { isFavorite, toggleFavorite } = useFavorites();
   const typeNames = pokemon?.types?.map((t) => t.type.name) ?? [];
@@ -69,17 +71,16 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
         )}
 
         {isError && (
-          <div className="p-8 text-center">
-            <p className="text-red-600">
-              Failed to load Pokemon details. Please try again.
-            </p>
-          </div>
+          <ErrorDisplay
+            message="Failed to load Pokemon details. Please try again."
+            onRetry={() => refetch()}
+          />
         )}
 
         {pokemon && (
           <div className="p-6 lg:p-8">
-            <div className="flex flex-col sm:flex-row-reverse items-center gap-8 mb-6">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
+              <div className="relative flex-shrink-0">
                 <img
                   src={artworkUrl(pokemon.id)}
                   alt={pokemon.name}
@@ -99,51 +100,53 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
                 />
               </div>
 
-              <div className="text-center sm:text-left">
-                <div className="relative sm:ml-5">
-                  <button
-                    type="button"
-                    aria-label={
-                      pokemonId && isFavorite(pokemonId)
-                        ? "Remove from favorites"
-                        : "Add to favorites"
-                    }
-                    aria-pressed={pokemonId ? isFavorite(pokemonId) : false}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (pokemonId) toggleFavorite(pokemonId);
-                    }}
-                    className="absolute -left-6 md:-left-7 top-1 p-1 bg-transparent rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 group/fav"
-                    title={
-                      isFavorite(pokemonId ?? -1)
-                        ? "Favorited"
-                        : "Add to favorites"
-                    }
-                  >
-                    <Star
-                      className={
+              <div className="text-center sm:text-left flex-1 sm:ml-4">
+                <div className="relative">
+                  <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                    <button
+                      type="button"
+                      aria-label={
                         pokemonId && isFavorite(pokemonId)
-                          ? "text-[var(--accent)] transition-colors group-hover/fav:text-[var(--accent-soft)]"
-                          : "text-slate-400 transition-colors group-hover/fav:text-[var(--accent-soft)]"
+                          ? "Remove from favorites"
+                          : "Add to favorites"
                       }
-                      fill={
-                        pokemonId && isFavorite(pokemonId)
-                          ? "currentColor"
-                          : "none"
+                      aria-pressed={pokemonId ? isFavorite(pokemonId) : false}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (pokemonId) toggleFavorite(pokemonId);
+                      }}
+                      className="p-1 bg-transparent rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 group/fav flex-shrink-0 sm:absolute sm:-left-8"
+                      title={
+                        isFavorite(pokemonId ?? -1)
+                          ? "Favorited"
+                          : "Add to favorites"
                       }
-                    />
-                  </button>
-                  <h2
-                    id="pokemon-modal-title"
-                    className="text-3xl font-bold capitalize mb-2"
-                  >
-                    {pokemon.name}
-                  </h2>
+                    >
+                      <Star
+                        className={
+                          pokemonId && isFavorite(pokemonId)
+                            ? "text-[var(--accent)] transition-colors group-hover/fav:text-[var(--accent-soft)]"
+                            : "text-slate-400 transition-colors group-hover/fav:text-[var(--accent-soft)]"
+                        }
+                        fill={
+                          pokemonId && isFavorite(pokemonId)
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
+                    </button>
+                    <h2
+                      id="pokemon-modal-title"
+                      className="text-3xl font-bold capitalize sm:ml-0"
+                    >
+                      {pokemon.name}
+                    </h2>
+                  </div>
                   <p className="text-gray-600 text-lg mb-3">
                     #{pokemon.id.toString().padStart(3, "0")}
                   </p>
 
-                  <div className="flex flex-wrap gap-2 justify-start">
+                  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                     {pokemon.types.map((type) => (
                       <span
                         key={type.type.name}
@@ -156,15 +159,20 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
 
                   {/* Species/Height/Weight stacked under the badges */}
                   <div className="mt-3 text-sm text-slate-600 space-y-1">
-                    <div><span className="font-semibold">Species:</span> {pokemon.species?.name ?? "—"}</div>
                     <div>
-                      <span className="font-semibold">Height:</span> {(pokemon.height ?? 0) / 10} m
-                      <span className="mx-2 text-slate-400">•</span>
-                      <span className="font-semibold">Weight:</span> {(pokemon.weight ?? 0) / 10} kg
+                      <span className="font-semibold">Species:</span>{" "}
+                      {pokemon.species?.name ?? "—"}
                     </div>
+                    <div>
+                      <span className="font-semibold">Height:</span>{" "}
+                      {(pokemon.height ?? 0) / 10} m
+                      <span className="mx-2 text-slate-400">•</span>
+                      <span className="font-semibold">Weight:</span>{" "}
+                      {(pokemon.weight ?? 0) / 10} kg
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
 
             <div className="mb-8">
@@ -182,7 +190,7 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
                       key={stat.stat.name}
                       className="flex items-center gap-4"
                     >
-                      <div className="w-20 text-sm font-medium text-gray-700 text-right">
+                      <div className="w-20 text-sm font-medium text-gray-700 text-left">
                         {statName}
                       </div>
                       <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
