@@ -12,7 +12,8 @@ export function useFilteredPokemon(
   searchTerm: string,
   page: number = 1,
   pageSize: number = 30,
-  shouldFetchData: boolean = true
+  shouldFetchData: boolean = true,
+  includeIds?: Set<number>
 ) {
   const [pokemon, setPokemon] = useState<PokemonWithDetails[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -41,7 +42,8 @@ export function useFilteredPokemon(
         sortOption,
         searchTerm,
         page,
-        pageSize
+        pageSize,
+        includeIds
       );
 
       setPokemon(results.pokemon);
@@ -57,7 +59,15 @@ export function useFilteredPokemon(
     } finally {
       setLoading(false);
     }
-  }, [filters, sortOption, searchTerm, page, pageSize, shouldFetchData]);
+  }, [
+    filters,
+    sortOption,
+    searchTerm,
+    page,
+    pageSize,
+    shouldFetchData,
+    includeIds,
+  ]);
 
   useEffect(() => {
     fetchPokemon();

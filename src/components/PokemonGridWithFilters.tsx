@@ -9,6 +9,7 @@ import { useFilteredPokemon } from "../hooks/useFilteredPokemon";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { HeavyOperationDialog } from "./HeavyOperationDialog";
 import PokemonCard from "./PokemonCard";
+import { EmptyState } from "./EmptyState.tsx";
 
 type Props = {
   filters: PokemonFilters;
@@ -17,6 +18,7 @@ type Props = {
   onClearFilters: () => void;
   onSortChange?: (sortOption: SortOption) => void;
   onPokemonSelect?: (id: number) => void;
+  includeIds?: Set<number> | null;
 };
 
 export function PokemonGridWithFilters({
@@ -26,6 +28,7 @@ export function PokemonGridWithFilters({
   onClearFilters,
   onSortChange,
   onPokemonSelect,
+  includeIds,
 }: Props) {
   const [page, setPage] = useState(1);
   const [showWarning, setShowWarning] = useState(false);
@@ -65,6 +68,8 @@ export function PokemonGridWithFilters({
   const shouldFetchData =
     !needsHeavyOperationConfirmation || userConfirmedHeavyOperation;
 
+  const includeIdsSet = includeIds ?? undefined;
+
   const { pokemon, totalCount, hasNextPage, loading, error } =
     useFilteredPokemon(
       filters,
@@ -72,7 +77,8 @@ export function PokemonGridWithFilters({
       searchTerm,
       page,
       pageSize,
-      shouldFetchData
+      shouldFetchData,
+      includeIdsSet
     );
 
   useEffect(() => {
@@ -164,10 +170,10 @@ export function PokemonGridWithFilters({
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600">Error loading Pokemon: {error}</p>
-        <p className="text-sm text-slate-500 mt-1">Please try again.</p>
-      </div>
+      <EmptyState
+        title={`Error loading Pokemon: ${error}`}
+        subtitle="Please try again."
+      />
     );
   }
 
@@ -181,17 +187,14 @@ export function PokemonGridWithFilters({
   }
 
   if (pokemon.length === 0 && page === 1) {
+    const title = searchTerm
+      ? `No Pokemon found matching "${searchTerm}".`
+      : "No Pokemon found matching your filters.";
     return (
-      <div className="text-center py-12">
-        <p className="text-slate-600">
-          {searchTerm
-            ? `No Pokemon found matching "${searchTerm}".`
-            : "No Pokemon found matching your filters."}
-        </p>
-        <p className="text-sm text-slate-500 mt-1">
-          Try adjusting your search criteria.
-        </p>
-      </div>
+      <EmptyState
+        title={title}
+        subtitle="Try adjusting your search criteria."
+      />
     );
   }
 
@@ -211,8 +214,8 @@ export function PokemonGridWithFilters({
   };
 
   return (
-    <div ref={containerRef}>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+    <div ref={containerRef} className="min-h-[50vh] flex flex-col">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 flex-none">
         {itemsToRender.map((p) => (
           <PokemonCard
             key={p.id}
@@ -254,7 +257,7 @@ export function PokemonGridWithFilters({
             Prev
           </button>
           <span className="text-sm text-slate-600">
-            Page {page} • Showing {pokemon.length} of {totalCount} results
+            Page {page} / {Math.max(1, Math.ceil(totalCount / pageSize))}
           </span>
           <button
             className="btn"

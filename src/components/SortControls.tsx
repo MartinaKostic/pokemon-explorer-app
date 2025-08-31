@@ -41,16 +41,20 @@ export function SortControls({ sortOption, onSortChange }: Props) {
     (opt) => opt.field === sortOption.field
   );
 
+  const dirLabel = (field: SortOption["field"], dir: "asc" | "desc") => {
+    const isName = field === "name";
+    const asc = isName ? "A→Z" : "Min→Max";
+    const desc = isName ? "Z→A" : "Max→Min";
+    return dir === "asc" ? asc : desc;
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-300 rounded-lg hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      >
+      <button onClick={() => setIsOpen(!isOpen)} className="btn">
         <span className="text-sm font-medium">
           {sortOption.field === "none"
             ? "Sort: Default Order"
-            : `Sort: ${currentOption?.label} (${sortOption.direction === "asc" ? "A→Z" : "Z→A"})`}
+            : `Sort: ${currentOption?.label} (${dirLabel(sortOption.field, sortOption.direction)})`}
         </span>
         <ChevronDown
           className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -92,7 +96,7 @@ export function SortControls({ sortOption, onSortChange }: Props) {
                         : ""
                     }`}
                   >
-                    {option.label} (A→Z)
+                    {option.label} ({dirLabel(option.field, "asc")})
                   </button>
                   <button
                     onClick={() => {
@@ -106,7 +110,7 @@ export function SortControls({ sortOption, onSortChange }: Props) {
                         : ""
                     }`}
                   >
-                    {option.label} (Z→A)
+                    {option.label} ({dirLabel(option.field, "desc")})
                   </button>
                 </>
               )}
