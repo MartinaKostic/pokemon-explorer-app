@@ -14,8 +14,11 @@ import {
 import { queryClient } from "./queryClient";
 import { fetchPokemonById } from "./pokemonApi";
 import pLimit from "p-limit";
-
-const API = "https://pokeapi.co/api/v2";
+import {
+  API_BASE_URL,
+  ERROR_MESSAGES,
+  QUERY_STALE_TIME_MS,
+} from "../constants";
 
 const CONCURRENCY = 20;
 
@@ -25,7 +28,7 @@ function extractIdFromUrl(url: string): number {
 
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+  if (!response.ok) throw new Error(ERROR_MESSAGES.API_ERROR);
   return (await response.json()) as T;
 }
 
@@ -34,8 +37,8 @@ async function getPokemonIdsByType(typeName: string): Promise<Set<number>> {
     pokemon: { pokemon: { url: string } }[];
   }>({
     queryKey: ["type", typeName],
-    queryFn: () => fetchJson(`${API}/type/${typeName}`),
-    staleTime: 60 * 60 * 1000, // 1h
+    queryFn: () => fetchJson(`${API_BASE_URL}/type/${typeName}`),
+    staleTime: QUERY_STALE_TIME_MS,
   });
   const ids = new Set<number>();
 
@@ -78,8 +81,8 @@ async function getPokemonIdsByAbility(
     pokemon: { pokemon: { url: string } }[];
   }>({
     queryKey: ["ability", abilityName],
-    queryFn: () => fetchJson(`${API}/ability/${abilityName}`),
-    staleTime: 60 * 60 * 1000, // 1h
+    queryFn: () => fetchJson(`${API_BASE_URL}/ability/${abilityName}`),
+    staleTime: QUERY_STALE_TIME_MS,
   });
   const ids = new Set<number>();
 
@@ -91,7 +94,7 @@ async function getPokemonIdsByAbility(
   return ids;
 }
 
-// Get ALL Pokemon list for global operations (search, sorting-only)
+// Get complete Pokemon list for search and sorting operations
 async function getAllPokemonList(): Promise<{ id: number; name: string }[]> {
   try {
     const data = await queryClient.ensureQueryData<{
@@ -99,9 +102,8 @@ async function getAllPokemonList(): Promise<{ id: number; name: string }[]> {
       count: number;
     }>({
       queryKey: ["pokemonListAll"],
-      // we have 1302 pokemons in total and we want to fetch all
-      queryFn: () => fetchJson(`${API}/pokemon?limit=1500`),
-      staleTime: 24 * 60 * 60 * 1000, // 24h
+      queryFn: () => fetchJson(`${API_BASE_URL}/pokemon?limit=1500`),
+      staleTime: 24 * QUERY_STALE_TIME_MS,
     });
 
     const list: { id: number; name: string }[] = [];

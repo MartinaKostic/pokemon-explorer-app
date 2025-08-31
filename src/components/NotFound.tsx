@@ -1,6 +1,6 @@
 export function NotFound() {
   return (
-    <div className="min-h-dvh flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-dvh flex items-center justify-center bg-blue-50 px-4">
       <div className="max-w-xl text-center">
         <div className="mt-6">
           <img

@@ -1,5 +1,6 @@
 import PokemonCard from "./PokemonCard";
 import { usePokemonInfinite } from "../api/usePokemonList";
+import { MOBILE_PAGE_SIZE, LOADING_STATES } from "../constants";
 
 type Props = {
   onPokemonSelect?: (id: number) => void;
@@ -7,7 +8,7 @@ type Props = {
 
 export function PokemonGridMobile({ onPokemonSelect }: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    usePokemonInfinite(12);
+    usePokemonInfinite(MOBILE_PAGE_SIZE);
 
   const items = data?.pages.flatMap((p) => p.items) ?? [];
 
@@ -32,7 +33,9 @@ export function PokemonGridMobile({ onPokemonSelect }: Props) {
             disabled={isFetchingNextPage}
             onClick={() => fetchNextPage()}
           >
-            {isFetchingNextPage ? "Loading…" : "Load more"}
+            {isFetchingNextPage
+              ? LOADING_STATES.LOADING
+              : LOADING_STATES.LOAD_MORE}
           </button>
         )}
       </div>

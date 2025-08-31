@@ -1,7 +1,8 @@
 export const artworkUrl = (id: number) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 };
-//badges
+
+// Type colors for badges and UI elements
 export const TYPE_COLORS: Record<string, string> = {
   normal: "bg-stone-400",
   fire: "bg-orange-500",
@@ -46,8 +47,12 @@ export const TYPE_HEX: Record<string, string> = {
 
 export const typeHex = (t?: string) => TYPE_HEX[t ?? ""] ?? "#3b82f6";
 
-//Za stat bar: ako postoje 2 tipa naizmjenično izmjenjuj
+// For stat bars: alternate between types if Pokemon has dual types
 export function statBarColorHex(typeNames: string[], idx: number) {
-  const [a, b] = typeNames;
-  return b ? (idx % 2 === 0 ? typeHex(a) : typeHex(b)) : typeHex(a);
+  const [primaryType, secondaryType] = typeNames;
+  return secondaryType
+    ? idx % 2 === 0
+      ? typeHex(primaryType)
+      : typeHex(secondaryType)
+    : typeHex(primaryType);
 }

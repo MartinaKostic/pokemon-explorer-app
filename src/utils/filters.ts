@@ -1,4 +1,10 @@
 import type { PokemonFilters, SortOption } from "../types/pokemon";
+import {
+  MIN_STAT_VALUE,
+  MAX_STAT_VALUE,
+  MIN_GENERATION,
+  MAX_GENERATION,
+} from "../constants";
 
 export const POKEMON_TYPES = [
   "normal",
@@ -77,10 +83,10 @@ export const DEFAULT_FILTERS: PokemonFilters = {
   typeMatchMode: "any",
   generations: [],
   stats: {
-    hp: [1, 255],
-    attack: [1, 255],
-    defense: [1, 255],
-    speed: [1, 255],
+    hp: [MIN_STAT_VALUE, MAX_STAT_VALUE],
+    attack: [MIN_STAT_VALUE, MAX_STAT_VALUE],
+    defense: [MIN_STAT_VALUE, MAX_STAT_VALUE],
+    speed: [MIN_STAT_VALUE, MAX_STAT_VALUE],
   },
   abilities: [],
 };
@@ -132,7 +138,7 @@ export function filtersToURLParams(filters: PokemonFilters): URLSearchParams {
 
   // Only add stat ranges if they're not default
   Object.entries(filters.stats).forEach(([stat, [min, max]]) => {
-    if (min !== 1 || max !== 255) {
+    if (min !== MIN_STAT_VALUE || max !== MAX_STAT_VALUE) {
       params.set(`${stat}_min`, min.toString());
       params.set(`${stat}_max`, max.toString());
     }
@@ -163,14 +169,14 @@ export function urlParamsToFilters(params: URLSearchParams): PokemonFilters {
     filters.generations = generations
       .split(",")
       .map((g) => parseInt(g))
-      .filter((g) => g >= 1 && g <= 9);
+      .filter((g) => g >= MIN_GENERATION && g <= MAX_GENERATION);
   }
 
   STAT_KEYS.forEach((stat) => {
     const min = params.get(`${stat}_min`);
     const max = params.get(`${stat}_max`);
-    if (min) filters.stats[stat][0] = Math.max(1, parseInt(min));
-    if (max) filters.stats[stat][1] = Math.min(255, parseInt(max));
+    if (min) filters.stats[stat][0] = Math.max(MIN_STAT_VALUE, parseInt(min));
+    if (max) filters.stats[stat][1] = Math.min(MAX_STAT_VALUE, parseInt(max));
   });
 
   const abilities = params.get("abilities");
@@ -186,7 +192,7 @@ export function hasActiveFilters(filters: PokemonFilters): boolean {
     filters.types.length > 0 ||
     filters.generations.length > 0 ||
     Object.values(filters.stats).some(
-      ([min, max]) => min !== 1 || max !== 255
+      ([min, max]) => min !== MIN_STAT_VALUE || max !== MAX_STAT_VALUE
     ) ||
     filters.abilities.length > 0
   );
