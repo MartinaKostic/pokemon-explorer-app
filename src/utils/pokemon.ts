@@ -1,7 +1,7 @@
 export const artworkUrl = (id: number) => {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 };
-
+//badges
 export const TYPE_COLORS: Record<string, string> = {
   normal: "bg-stone-400",
   fire: "bg-orange-500",
@@ -20,37 +20,34 @@ export const TYPE_COLORS: Record<string, string> = {
   dragon: "bg-indigo-700",
   dark: "bg-zinc-700",
   steel: "bg-slate-500",
-  fairy: "bg-rose-400",
+  fairy: "bg-rose-300",
 };
 
-// Type color mappings for modal styling
-const TYPE_COLOR_VALUES: Record<
-  string,
-  { primary: string; background: string }
-> = {
-  normal: { primary: "#a8a878", background: "#f5f5f0" },
-  fire: { primary: "#f08030", background: "#fef2e8" },
-  water: { primary: "#6890f0", background: "#e8f4ff" },
-  grass: { primary: "#78c850", background: "#f0fdf4" },
-  electric: { primary: "#f8d030", background: "#fffbeb" },
-  ice: { primary: "#98d8d8", background: "#f0fdfa" },
-  fighting: { primary: "#c03028", background: "#fef2f2" },
-  poison: { primary: "#a040a0", background: "#faf5ff" },
-  ground: { primary: "#e0c068", background: "#fffbeb" },
-  flying: { primary: "#a890f0", background: "#f5f3ff" },
-  psychic: { primary: "#f85888", background: "#fdf2f8" },
-  bug: { primary: "#a8b820", background: "#f7fee7" },
-  rock: { primary: "#b8a038", background: "#fffbeb" },
-  ghost: { primary: "#705898", background: "#f5f3ff" },
-  dragon: { primary: "#7038f8", background: "#f5f3ff" },
-  dark: { primary: "#705848", background: "#f8fafc" },
-  steel: { primary: "#b8b8d0", background: "#f8fafc" },
-  fairy: { primary: "#ee99ac", background: "#fdf2f8" },
+export const TYPE_HEX: Record<string, string> = {
+  normal: "#a8a29e",
+  fire: "#f97316",
+  water: "#0ea5e9",
+  grass: "#22c55e",
+  electric: "#facc15",
+  ice: "#22d3ee",
+  fighting: "#dc2626",
+  poison: "#c026d3",
+  ground: "#a16207",
+  flying: "#818cf8",
+  psychic: "#ec4899",
+  bug: "#65a30d",
+  rock: "#b45309",
+  ghost: "#7c3aed",
+  dragon: "#4338ca",
+  dark: "#374151",
+  steel: "#64748b",
+  fairy: "#fda4af",
 };
 
-export function getTypeColor(type: string): {
-  primary: string;
-  background: string;
-} {
-  return TYPE_COLOR_VALUES[type.toLowerCase()] || TYPE_COLOR_VALUES.normal;
+export const typeHex = (t?: string) => TYPE_HEX[t ?? ""] ?? "#3b82f6";
+
+//Za stat bar: ako postoje 2 tipa naizmjenično izmjenjuj
+export function statBarColorHex(typeNames: string[], idx: number) {
+  const [a, b] = typeNames;
+  return b ? (idx % 2 === 0 ? typeHex(a) : typeHex(b)) : typeHex(a);
 }

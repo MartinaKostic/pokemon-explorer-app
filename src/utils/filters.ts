@@ -60,6 +60,16 @@ export const COMMON_ABILITIES = [
   "lightning-rod",
   "serene-grace",
   "keen-eye",
+  "adaptability",
+  "levitate",
+  "pressure",
+  "shed-skin",
+  "inner-focus",
+  "poison-point",
+  "multiscale",
+  "mold-breaker",
+  "regenerator",
+  "no-guard",
 ];
 
 export const DEFAULT_FILTERS: PokemonFilters = {

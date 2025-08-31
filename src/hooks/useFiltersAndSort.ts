@@ -105,6 +105,12 @@ export function useFiltersAndSort() {
     setSortOption(newSort);
   }, []);
 
+  const applyFiltersNow = useCallback((next: PokemonFilters) => {
+    setFilters(next);
+    setAppliedFilters(next);
+    setIsFilteringEnabled(true);
+  }, []);
+
   const clearFilters = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
     setAppliedFilters(DEFAULT_FILTERS);
@@ -123,6 +129,7 @@ export function useFiltersAndSort() {
     updateFilters,
     applyFilters,
     updateSort,
+    applyFiltersNow,
     clearFilters,
     resetSort,
     hasActiveFilters: hasActiveFilters(filters),

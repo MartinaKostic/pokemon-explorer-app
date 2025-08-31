@@ -124,7 +124,10 @@ async function getAllPokemonIds(): Promise<Set<number>> {
 
 // get pokemon ids that will be used later to fetch details about them
 // used so we don't fetch 1302 pokemon details always
-async function getCandidateIds(filters: PokemonFilters): Promise<Set<number>> {
+async function getCandidateIds(
+  filters: PokemonFilters,
+  includeIds?: Set<number>
+): Promise<Set<number>> {
   const typePromises: Promise<Set<number>>[] =
     filters.types.length > 0
       ? filters.types.map((type) => getPokemonIdsByType(type))
@@ -143,6 +146,8 @@ async function getCandidateIds(filters: PokemonFilters): Promise<Set<number>> {
     abilityPromises.length === 0 &&
     generationSets.length === 0
   ) {
+    // If we only want a favorites- return them directly so we don't fetch all ids
+    if (includeIds && includeIds.size > 0) return new Set(includeIds);
     return await getAllPokemonIds();
   }
 
@@ -181,7 +186,12 @@ async function getCandidateIds(filters: PokemonFilters): Promise<Set<number>> {
       : abilityIds;
   }
 
-  return candidateIds ?? new Set<number>();
+  // for filtering in favorites
+  let result = candidateIds ?? new Set<number>();
+  if (includeIds && includeIds.size > 0) {
+    result = new Set([...result].filter((id) => includeIds.has(id)));
+  }
+  return result;
 }
 
 async function fetchPokemonDetails(id: number): Promise<PokemonDetail | null> {
@@ -204,6 +214,11 @@ function convertToEnhancedPokemon(
   try {
     const generation = getGenerationById(pokemon.id);
 
+    const speciesUrl = pokemon.species?.url;
+    const speciesId = speciesUrl
+      ? Number(new URL(speciesUrl).pathname.split("/").filter(Boolean).pop())
+      : pokemon.id;
+
     const statsMap = new Map<string, number>();
     pokemon.stats.forEach((stat) => {
       statsMap.set(stat.stat.name, stat.base_stat);
@@ -220,7 +235,7 @@ function convertToEnhancedPokemon(
     return {
       id: pokemon.id,
       name: pokemon.name,
-      img: artworkUrl(pokemon.id),
+      img: artworkUrl(speciesId),
       types: pokemon.types.map((t) => t.type.name),
       generation,
       stats,
@@ -291,7 +306,8 @@ export async function fetchFilteredAndSortedPokemon(
   sortOption: SortOption,
   searchTerm: string = "",
   page: number = 1,
-  pageSize: number = 30
+  pageSize: number = 30,
+  includeIds?: Set<number>
 ): Promise<{
   pokemon: PokemonWithDetails[];
   totalCount: number;
@@ -301,22 +317,24 @@ export async function fetchFilteredAndSortedPokemon(
   try {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    const candidateIds = await getCandidateIds(filters);
+    const candidateIds = await getCandidateIds(filters, includeIds);
 
-    let filteredCandidateIds = candidateIds;
-    if (normalizedSearch) {
+    // If we're operating on a limited set (e.g., favorites), defer name filtering until after details are fetched
+    // to avoid fetching the global list. Otherwise, prefilter by name using the global list for efficiency.
+    let candidateArray: number[];
+    if (!includeIds && normalizedSearch) {
       const fullList = await getAllPokemonList();
       const nameMatched = new Set(
         fullList
           .filter((p) => p.name.toLowerCase().includes(normalizedSearch))
           .map((p) => p.id)
       );
-      filteredCandidateIds = new Set(
-        [...candidateIds].filter((id) => nameMatched.has(id))
+      candidateArray = Array.from(candidateIds).filter((id) =>
+        nameMatched.has(id)
       );
+    } else {
+      candidateArray = Array.from(candidateIds);
     }
-
-    const candidateArray = Array.from(filteredCandidateIds);
 
     if (candidateArray.length === 0) {
       return {
@@ -339,6 +357,13 @@ export async function fetchFilteredAndSortedPokemon(
     );
     const allEnhanced = await Promise.all(enhancedPromises);
     let filtered = allEnhanced.filter(Boolean) as PokemonWithDetails[];
+
+    // If we deferred name filtering (favorites), do it now
+    if (includeIds && normalizedSearch) {
+      filtered = filtered.filter((p) =>
+        p.name.toLowerCase().includes(normalizedSearch)
+      );
+    }
 
     if (sortOption.field !== "none") {
       filtered = sortPokemon(filtered, sortOption);

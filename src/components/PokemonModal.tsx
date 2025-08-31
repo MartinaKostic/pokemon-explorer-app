@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { X, Star } from "lucide-react";
 import { usePokemonDetails } from "../api/usePokemonDetails";
-import { artworkUrl, TYPE_COLORS } from "../utils/pokemon";
+import { artworkUrl, statBarColorHex, TYPE_COLORS } from "../utils/pokemon";
+import { useFavorites } from "../hooks/useFavorites";
 
 type Props = {
   pokemonId: number | null;
@@ -14,8 +15,8 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
     isLoading,
     isError,
   } = usePokemonDetails(pokemonId || undefined);
-  const [favourite, setFavourite] = useState(false);
-
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const typeNames = pokemon?.types?.map((t) => t.type.name) ?? [];
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -36,49 +37,6 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
 
   if (!pokemonId) return null;
 
-  const getStatBarColor = (index: number) => {
-    if (!pokemon?.types) return "#3b82f6"; // Default blue
-
-    const primaryType = pokemon.types[0]?.type.name;
-    const secondaryType = pokemon.types[1]?.type.name;
-
-    if (secondaryType && pokemon.types.length === 2) {
-      const colors = {
-        primary: getTypeColorValue(primaryType),
-        secondary: getTypeColorValue(secondaryType),
-      };
-      return index % 2 === 0 ? colors.primary : colors.secondary;
-    } else {
-      return getTypeColorValue(primaryType);
-    }
-  };
-
-  // Helper function to get actual color values that match TYPE_COLORS exactly
-  const getTypeColorValue = (typeName: string): string => {
-    // These hex values match the Tailwind colors used in TYPE_COLORS
-    const typeColorMap: Record<string, string> = {
-      normal: "#a8a29e", // stone-400
-      fire: "#f97316", // orange-500
-      water: "#0ea5e9", // sky-500
-      grass: "#22c55e", // green-500
-      electric: "#facc15", // yellow-400
-      ice: "#22d3ee", // cyan-400
-      fighting: "#dc2626", // red-600
-      poison: "#c026d3", // fuchsia-600
-      ground: "#a16207", // yellow-700
-      flying: "#818cf8", // indigo-400
-      psychic: "#ec4899", // pink-500
-      bug: "#65a30d", // lime-600
-      rock: "#b45309", // amber-700
-      ghost: "#7c3aed", // violet-700
-      dragon: "#4338ca", // indigo-700
-      dark: "#374151", // gray-700
-      steel: "#64748b", // slate-500
-      fairy: "#fb7185", // rose-400
-    };
-    return typeColorMap[typeName] || "#3b82f6";
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
@@ -88,7 +46,7 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
       />
 
       <div
-        className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+        className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-labelledby="pokemon-modal-title"
@@ -101,25 +59,7 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
           <X className="w-5 h-5" />
         </button>
 
-        <button
-          type="button"
-          aria-label={favourite ? "Remove from favorites" : "Add to favorites"}
-          aria-pressed={favourite}
-          onClick={(e) => {
-            e.stopPropagation();
-            setFavourite((v) => !v);
-          }}
-          className="absolute top-6 left-6 z-10 p-2 bg-transparent rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 group/fav"
-        >
-          <Star
-            className={
-              favourite
-                ? "text-[var(--accent)] transition-colors group-hover/fav:text-[var(--accent-soft)]"
-                : "text-slate-400 transition-colors group-hover/fav:text-[var(--accent-soft)]"
-            }
-            fill={favourite ? "currentColor" : "none"}
-          />
-        </button>
+        {/* Content */}
 
         {isLoading && (
           <div className="p-8 text-center">
@@ -138,37 +78,93 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
 
         {pokemon && (
           <div className="p-6 lg:p-8">
-            <div className="flex flex-col sm:flex-row items-center gap-6 mb-8">
+            <div className="flex flex-col sm:flex-row-reverse items-center gap-8 mb-6">
               <div className="relative">
                 <img
                   src={artworkUrl(pokemon.id)}
                   alt={pokemon.name}
                   className="w-32 h-32 sm:w-40 sm:h-40 object-contain"
+                  onError={(e) => {
+                    // Fallback when form artwork is missing
+                    const url = pokemon.species?.url;
+                    const sid = url
+                      ? Number(
+                          new URL(url).pathname.split("/").filter(Boolean).pop()
+                        )
+                      : NaN;
+                    if (!Number.isNaN(sid))
+                      (e.currentTarget as HTMLImageElement).src =
+                        artworkUrl(sid);
+                  }}
                 />
               </div>
 
               <div className="text-center sm:text-left">
-                <h2
-                  id="pokemon-modal-title"
-                  className="text-3xl font-bold capitalize mb-2"
-                >
-                  {pokemon.name}
-                </h2>
-                <p className="text-gray-600 text-lg mb-4">
-                  #{pokemon.id.toString().padStart(3, "0")}
-                </p>
+                <div className="relative sm:ml-5">
+                  <button
+                    type="button"
+                    aria-label={
+                      pokemonId && isFavorite(pokemonId)
+                        ? "Remove from favorites"
+                        : "Add to favorites"
+                    }
+                    aria-pressed={pokemonId ? isFavorite(pokemonId) : false}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (pokemonId) toggleFavorite(pokemonId);
+                    }}
+                    className="absolute -left-6 md:-left-7 top-1 p-1 bg-transparent rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 group/fav"
+                    title={
+                      isFavorite(pokemonId ?? -1)
+                        ? "Favorited"
+                        : "Add to favorites"
+                    }
+                  >
+                    <Star
+                      className={
+                        pokemonId && isFavorite(pokemonId)
+                          ? "text-[var(--accent)] transition-colors group-hover/fav:text-[var(--accent-soft)]"
+                          : "text-slate-400 transition-colors group-hover/fav:text-[var(--accent-soft)]"
+                      }
+                      fill={
+                        pokemonId && isFavorite(pokemonId)
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </button>
+                  <h2
+                    id="pokemon-modal-title"
+                    className="text-3xl font-bold capitalize mb-2"
+                  >
+                    {pokemon.name}
+                  </h2>
+                  <p className="text-gray-600 text-lg mb-3">
+                    #{pokemon.id.toString().padStart(3, "0")}
+                  </p>
 
-                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                  {pokemon.types.map((type) => (
-                    <span
-                      key={type.type.name}
-                      className={`px-3 py-1 rounded text-sm font-medium capitalize text-white ${TYPE_COLORS[type.type.name] ?? "bg-slate-400"}`}
-                    >
-                      {type.type.name}
-                    </span>
-                  ))}
+                  <div className="flex flex-wrap gap-2 justify-start">
+                    {pokemon.types.map((type) => (
+                      <span
+                        key={type.type.name}
+                        className={`px-3 py-1 rounded text-sm font-medium capitalize text-white ${TYPE_COLORS[type.type.name] ?? "bg-slate-400"}`}
+                      >
+                        {type.type.name}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Species/Height/Weight stacked under the badges */}
+                  <div className="mt-3 text-sm text-slate-600 space-y-1">
+                    <div><span className="font-semibold">Species:</span> {pokemon.species?.name ?? "—"}</div>
+                    <div>
+                      <span className="font-semibold">Height:</span> {(pokemon.height ?? 0) / 10} m
+                      <span className="mx-2 text-slate-400">•</span>
+                      <span className="font-semibold">Weight:</span> {(pokemon.weight ?? 0) / 10} kg
+                    </div>
                 </div>
               </div>
+            </div>
             </div>
 
             <div className="mb-8">
@@ -194,7 +190,7 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
                           className="h-full rounded-full transition-all duration-500 ease-out"
                           style={{
                             width: `${percentage}%`,
-                            backgroundColor: getStatBarColor(index),
+                            backgroundColor: statBarColorHex(typeNames, index),
                           }}
                         />
                       </div>
@@ -225,9 +221,9 @@ export function PokemonModal({ pokemonId, onClose }: Props) {
                 {pokemon.abilities.map((ability) => (
                   <span
                     key={ability.ability.name}
-                    className="px-3 py-1.5 rounded text-sm font-medium capitalize bg-blue-100 text-blue-800"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium capitalize bg-slate-100 text-slate-800 border border-slate-200"
                   >
-                    {ability.ability.name.replace("-", " ")}
+                    {ability.ability.name.replace(/-/g, " ")}
                   </span>
                 ))}
               </div>
