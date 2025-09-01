@@ -99,7 +99,9 @@ The app uses a "hybrid" approach with `PokemonGridChooser` that automatically ro
   - Shows warning dialog for expensive operations
   - **Responsive**: Automatically adapts mobile vs desktop behavior
 
-**Why two different systems?** The basic grid hits a simple, fast API endpoint that gives you Pokemon in order. The filtered grid has to hit multiple different API endpoints and combine the data, which is much slower but gives you filtering/sorting capabilities.
+**Why two different systems?** The basic grid hits a simple, fast API endpoint that gives you Pokemon in order. The filtered grid has to hit multiple different API endpoints and combine the data, which is much slower but gives you filtering/sorting capabilities. This architectural choice keeps the common use case (just browsing Pokemon) super fast while handling complex filtering separately when needed.
+
+Since this is a frontend-only app, I did client-side filtering. A **fullstack approach would definitely be better for performance** (backend could handle 1000+ API calls server-side, faster results, less browser resource usage, better SEO).
 
 **Why mobile vs desktop versions?** Different devices need different UX patterns:
 
@@ -128,18 +130,9 @@ So the challenge is **combining multiple filters** and **sorting by stats** - th
 
 ### Alternative Approach (Not Implemented)
 
-There's actually one case where you could use a single API endpoint for some sorting:
+I could have used `GET /pokemon?offset=0&limit=1500` for name/generation sorting only, but this only works for a subset of sorting options - stats-based sorting still requires individual Pokemon details, so I needed the multi-API system anyway.
 
-- **For name or generation sorting only**: You could use `GET /pokemon?offset=0&limit=1500` to get all Pokemon names and IDs in order, then apply generation filtering by ID ranges
-- **Fake pagination**: Since you have all the data, you could simulate pagination client-side
-- **Problem**: This only works for name/generation sorting. The moment you want to sort by stats (attack, defense, etc.), you're back to fetching individual Pokemon details for each one
-
-I decided against this approach because:
-
-- It only solves a subset of the sorting problem
-- You still need the complex multi-API system for stats-based sorting
-
-### Our Solution Strategy
+### Solution Strategy
 
 I built a multi-step optimization system to make this work efficiently:
 
@@ -212,7 +205,7 @@ export const COMMON_ABILITIES = ["blaze", "torrent", "overgrow", ...];
 - Avoids unnecessary API calls on every page load
 - Provides better UX with immediate filter options
 
-_Note: In a fullstack production project, I'd probably store this in a database and cache it properly rather than hardcoding in the frontend, but for this demo project it makes sense._
+_Note: In a fullstack production project, I'd probably store this in a database and cache it properly rather than hardcoding in the frontend_
 
 ## Testing
 
@@ -235,7 +228,7 @@ _Why these?_ These cover core data transformations and URL/state handling that p
 - **API mocking with MSW**: Shows I know how to mock API responses for testing
 - **Error handling**: Tests graceful failures when API calls don't work
 
-_Why this?_ Wanted to show I can write integration tests that test multiple parts working together, plus demonstrate MSW usage.
+_Why this?_ Wanted to show I can write integration tests that test multiple parts working together.
 
 **E2E Test (`tests/e2e/modal.spec.ts`)**
 
@@ -244,70 +237,33 @@ _Why this?_ Wanted to show I can write integration tests that test multiple part
 
 _Why this?_ Mainly to show I know how to set up Playwright and write E2E tests. The modal seemed like a simple interaction to test.
 
-### Tests I Would Add in a Real Project
+### Tests I would add next (focused)
 
-**More Unit Tests:**
+**More Unit Tests**
 
-- **Search logic**: Test name filtering and normalization
-- **Pokemon data conversion**: Test `convertToEnhancedPokemon()` transformation
-- **Generation calculation**: Test ID range calculations for different generations
-- **Set operations edge cases**: Test empty sets, single items, large datasets
+- Search logic: name filtering and normalization (lowercasing, trimming, partial matches)
+- Pokemon data conversion: `convertToEnhancedPokemon()` maps API → UI shape and handles missing fields safely
+- Generation calculation: ID → generation mapping (including non-standard IDs like 10000+)
 
-**More Integration Tests:**
+**More Integration Tests**
 
-- **Combined filters**: Test type + generation + abilities together
-- **Search + filters**: Test searching "char" while filtering by fire type
-- **Cache behavior**: Test TanStack Query caching works correctly
-- **Mobile vs desktop**: Test different behaviors on different screen sizes
+- Combined filters: types + generations + abilities with "any" vs "all" rules
+- Search + filters: name search reduces candidates before detail fetch (keeps request count in check)
 
-**More E2E Tests:**
+**More E2E Tests**
 
-- **Complete user workflows**: Search → filter → sort → favorite → modal
-- **Filter combinations**: Select multiple types, change sort order, verify results
-- **Mobile interactions**: Test load-more pagination doesn't break with filters
-- **Favorites persistence**: Add favorites, refresh page, verify they're still there
-- **Heavy operation warnings**: Test dialog appears for expensive operations
+- End‑to‑end workflow: search → filter → sort → favorite → open modal
+- Mobile load‑more: loads additional items, preserves scroll position, avoids duplicates
+- Favorites persistence: favorites saved to localStorage and survive reload
 
-**Performance Tests:**
+**Accessibility Tests**
 
-- **Memory usage**: Test filtering 1000+ Pokemon doesn't cause memory leaks
-- **API rate limiting**: Test concurrent request limiting works under load
-- **Scroll performance**: Test load-more remains smooth with many items
-
-**Accessibility Tests:**
-
-- **Keyboard navigation**: Test all interactions work with keyboard only
-- **Screen reader compatibility**: Test ARIA labels and announcements
-- **Focus management**: Test focus moves correctly in modals and filters
+- Keyboard navigation: tab/shift‑tab through controls; Enter/Escape for dialogs
+- Focus management: focus trapped in modal and returns to trigger on close
 
 ## Key Technical Decisions
 
-### 1. **Two-Grid System (Different APIs)**
-
-Instead of one complex component, I split into basic (fast API) and filtered (complex multi-API) grids:
-
-- **Basic grid**: Hits `/pokemon?offset=X&limit=Y` - one simple API call
-- **Filtered grid**: Hits `/type/fire`, `/ability/blaze`, `/pokemon/1`, `/pokemon/2`, etc. - many API calls
-
-This keeps the common case (just browsing Pokemon) super fast, while handling complex filtering separately when needed.
-
-### 2. **Client-Side Filtering Over Server Proxy**
-
-I chose to apply for frontend positions, so I built a client-side solution. However, a **fullstack approach would definitely be better** for performance:
-
-- Backend could handle the 1000+ API calls server-side
-- Users would get filtered results much faster
-- Less browser resource usage
-- Better for SEO and initial page loads
-
-For a frontend-only solution, client-side filtering made sense because:
-
-- No backend infrastructure needed
-- Leverages browser caching
-- Limited offline resilience via browser cache
-- Simpler deployment (static hosting)
-
-### 3. **Favorites in LocalStorage**
+### 1. **Favorites in LocalStorage**
 
 Used localStorage instead of a database because:
 
@@ -315,7 +271,7 @@ Used localStorage instead of a database because:
 - Works offline
 - Good enough for personal favorites
 
-### 4. **TanStack Query Over SWR**
+### 2. **TanStack Query Over SWR**
 
 Chose TanStack Query because:
 
@@ -326,7 +282,7 @@ Chose TanStack Query because:
 
 **SWR** is another popular data fetching library for React, similar to TanStack Query, but with a simpler API. I chose TanStack Query for its more advanced features.
 
-### 5. **p-limit for Concurrency**
+### 3. **p-limit for Concurrency**
 
 Used p-limit to control concurrent requests because:
 
@@ -367,48 +323,12 @@ Paginate for display (instant)
 - Scroll position anchoring during "Load More"
 - Touch-friendly interface
 
-### 4. **Bundle Optimizations**
-
-- Tree-shaking with Vite
-- Code splitting (though limited in this SPA)
-- Optimized Tailwind CSS
-- Compressed production builds
-
 ## What This Project Demonstrates
 
-### Problem-Solving Skills
-
-- Identified the core API limitation and designed a comprehensive solution
-- Balanced performance vs functionality tradeoffs
-- Built user-friendly warnings for expensive operations
-
-### React/TypeScript Knowledge
-
-- Complex state management with multiple hooks
-- Type-safe API integration
-- Performance optimization with React patterns
-- Custom hooks for reusable logic
-
-### API Integration
-
-- Working with challenging third-party APIs
-- Error handling and retry logic
-- Efficient data fetching strategies
-- Caching and performance optimization
-
-### UX/UI Design
-
-- Responsive design that works on all devices
-- Progressive enhancement (basic → filtered functionality)
-- Loading states and error handling
-- Accessible components with proper ARIA labels
-
-### Architecture & Planning
-
-- Clean separation of concerns
-- Scalable folder structure
-- Consistent naming conventions
-- Documentation and code comments
+- **Problem-solving**: Overcame API limitations with efficient multi-step filtering
+- **React/TypeScript**: Complex state management, custom hooks, type-safe APIs
+- **Performance**: Caching, concurrency control, mobile optimizations
+- **UX/Architecture**: Responsive design, clean code structure, user-friendly features
 
 ## Future Improvements
 
@@ -449,15 +369,3 @@ npm run build
 # Preview production build
 npm run preview
 ```
-
-## Notes for Code Review
-
-This project showcases real-world problem solving where the external API (Pokemon API) doesn't support the features users need. Instead of giving up or building a complex backend, I designed a good client-side solution that:
-
-1. **Minimizes API calls** through strategic pre-filtering
-2. **Handles edge cases** like network errors and rate limiting
-3. **Provides good UX** with loading states and performance warnings
-4. **Scales efficiently** from 10 to 1000+ Pokemon
-5. **Keeps code clean** despite complex data flow requirements
-
-The result is a fast, reliable Pokemon explorer that feels like it has a custom API built just for filtering and searching Pokemon data.
