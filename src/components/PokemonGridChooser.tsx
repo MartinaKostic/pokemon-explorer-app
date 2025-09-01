@@ -1,6 +1,4 @@
-import { useIsMobile } from "../hooks/useIsMobile";
-import { PokemonGridMobile } from "./PokemonGrid.mobile";
-import { PokemonGridDesktop } from "./PokemonGrid.desktop";
+import { PokemonGrid } from "./PokemonGrid";
 import { PokemonGridWithFilters } from "./PokemonGridWithFilters";
 import type { PokemonFilters, SortOption } from "../types/pokemon";
 import { hasActiveFilterCriteria } from "../api/filteredPokemonApi";
@@ -26,8 +24,6 @@ export function PokemonGridChooser({
   onPokemonSelect,
   includeIds,
 }: Props) {
-  const isMobile = useIsMobile();
-
   const useFilteredGrid =
     isFilteringEnabled && hasActiveFilterCriteria(filters);
 
@@ -56,9 +52,5 @@ export function PokemonGridChooser({
   }
 
   // Use original pagination system when no filters and default sorting
-  return isMobile ? (
-    <PokemonGridMobile onPokemonSelect={onPokemonSelect} />
-  ) : (
-    <PokemonGridDesktop onPokemonSelect={onPokemonSelect} />
-  );
+  return <PokemonGrid onPokemonSelect={onPokemonSelect} />;
 }

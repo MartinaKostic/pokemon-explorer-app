@@ -17,7 +17,9 @@ import pLimit from "p-limit";
 import {
   API_BASE_URL,
   ERROR_MESSAGES,
-  QUERY_STALE_TIME_MS,
+  QUERY_GC_TIME_MS,
+  STABLE_LIST_STALE_TIME_MS,
+  POKEMON_DETAIL_STALE_TIME_MS,
 } from "../constants";
 
 const CONCURRENCY = 20;
@@ -38,7 +40,9 @@ async function getPokemonIdsByType(typeName: string): Promise<Set<number>> {
   }>({
     queryKey: ["type", typeName],
     queryFn: () => fetchJson(`${API_BASE_URL}/type/${typeName}`),
-    staleTime: QUERY_STALE_TIME_MS,
+    // Type listings are very stable
+    staleTime: STABLE_LIST_STALE_TIME_MS,
+    gcTime: Math.max(STABLE_LIST_STALE_TIME_MS, QUERY_GC_TIME_MS),
   });
   const ids = new Set<number>();
 
@@ -82,7 +86,9 @@ async function getPokemonIdsByAbility(
   }>({
     queryKey: ["ability", abilityName],
     queryFn: () => fetchJson(`${API_BASE_URL}/ability/${abilityName}`),
-    staleTime: QUERY_STALE_TIME_MS,
+    // Ability listings are very stable
+    staleTime: STABLE_LIST_STALE_TIME_MS,
+    gcTime: Math.max(STABLE_LIST_STALE_TIME_MS, QUERY_GC_TIME_MS),
   });
   const ids = new Set<number>();
 
@@ -103,7 +109,9 @@ async function getAllPokemonList(): Promise<{ id: number; name: string }[]> {
     }>({
       queryKey: ["pokemonListAll"],
       queryFn: () => fetchJson(`${API_BASE_URL}/pokemon?limit=1500`),
-      staleTime: 24 * QUERY_STALE_TIME_MS,
+      // Global list (names + ids) changes rarely
+      staleTime: STABLE_LIST_STALE_TIME_MS,
+      gcTime: Math.max(STABLE_LIST_STALE_TIME_MS, QUERY_GC_TIME_MS),
     });
 
     const list: { id: number; name: string }[] = [];
@@ -201,7 +209,8 @@ async function fetchPokemonDetails(id: number): Promise<PokemonDetail | null> {
     const pokemon = await queryClient.ensureQueryData<PokemonDetail>({
       queryKey: ["pokemon", id],
       queryFn: () => fetchPokemonById(id),
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: POKEMON_DETAIL_STALE_TIME_MS,
+      gcTime: Math.max(POKEMON_DETAIL_STALE_TIME_MS, QUERY_GC_TIME_MS),
     });
     return pokemon;
   } catch (error) {

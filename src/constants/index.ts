@@ -19,6 +19,13 @@ export const QUERY_RETRY_COUNT = 2;
 export const QUERY_STALE_TIME_MS = 60_000; // 1 minute
 export const QUERY_GC_TIME_MS = 1000 * 60 * 60; // 1 hour
 
+// Resource-specific cache durations
+// Stable lists (types, abilities, global name/id list) change rarely
+export const STABLE_LIST_STALE_TIME_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Pokemon details can change more often
+export const POKEMON_DETAIL_STALE_TIME_MS = 5 * 60 * 1000; // 5 minutes
+
 // UI Configuration
 export const SKELETON_LOADING_COUNT = 30;
 export const MODAL_CLOSE_DELAY_MS = 200;
