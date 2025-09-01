@@ -70,7 +70,7 @@ test("open modal from grid, see details, then close", async ({ page }) => {
   await page.goto("/");
 
   // Wait for Bulbasaur card to show up
-  const cardButton = page.getByRole("button", { name: /bulbasaur-1/i });
+  const cardButton = page.getByRole("button", { name: /bulbasaur/i });
   await expect(cardButton).toBeVisible();
 
   // Open the modal

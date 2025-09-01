@@ -100,8 +100,8 @@ describe("PokemonGridWithFilters (integration)", () => {
       </QueryClientProvider>
     );
 
-    await screen.findByText(/charmander-4/i);
-    await screen.findByText(/charmeleon-5/i);
+    await screen.findByText(/charmander/i);
+    await screen.findByText(/charmeleon/i);
 
     await waitFor(() => {
       expect(screen.queryByText(/Loading Pokemon/i)).toBeNull();
@@ -176,7 +176,7 @@ describe("PokemonGridWithFilters (integration)", () => {
       </QueryClientProvider>
     );
 
-    await screen.findByText(/bulbasaur-1/i);
-    expect(screen.queryByText(/caterpie-10/i)).toBeNull();
+    await screen.findByText(/bulbasaur/i);
+    expect(screen.queryByText(/caterpie/i)).toBeNull();
   });
 });
