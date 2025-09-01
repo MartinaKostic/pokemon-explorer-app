@@ -6,7 +6,7 @@ A modern React application for exploring and filtering Pokemon data, built to ha
 
 - Search Pokemon by name, filter by type/generation/abilities/stats
 - Sort by different criteria (name, stats, generation, etc.)
-- Save favorites (stored locally)
+- Save favorites (stored locally in browser storage for offline access)
 - Shareable URLs for filters, search, and sort
 - Works on mobile and desktop
 - Handles 1300+ Pokemon without freezing your browser
@@ -15,11 +15,11 @@ A modern React application for exploring and filtering Pokemon data, built to ha
 
 - React 19 + TypeScript + Tailwind CSS
 - Vite for building
-- TanStack Query for data fetching and caching
+- TanStack Query for data fetching and caching (chosen for superior error handling and TypeScript support)
 - React Context for favorites, React hooks for everything else
 - Pokemon API (PokeAPI)
 - Lucide React icons
-- p-limit to control API request concurrency
+- p-limit to control API request concurrency (prevents browser overload during heavy operations)
 
 ## How it's organized - Project Architecture
 
@@ -260,36 +260,6 @@ _Why this?_ Mainly to show I know how to set up Playwright and write E2E tests. 
 
 - Keyboard navigation: tab/shift‑tab through controls; Enter/Escape for dialogs
 - Focus management: focus trapped in modal and returns to trigger on close
-
-## Key Technical Decisions
-
-### 1. **Favorites in LocalStorage**
-
-Used localStorage instead of a database because:
-
-- No user accounts needed
-- Works offline
-- Good enough for personal favorites
-
-### 2. **TanStack Query Over SWR**
-
-Chose TanStack Query because:
-
-- Better error handling and retry logic
-- More powerful caching options
-- Built-in loading states
-- Better TypeScript support
-
-**SWR** is another popular data fetching library for React, similar to TanStack Query, but with a simpler API. I chose TanStack Query for its more advanced features.
-
-### 3. **p-limit for Concurrency**
-
-Used p-limit to control concurrent requests because:
-
-- Prevents browser from being overwhelmed
-- Avoids potential rate limiting from Pokemon API
-- Keeps UI responsive during heavy operations
-- Simple to implement and understand
 
 ## Performance Optimizations
 
