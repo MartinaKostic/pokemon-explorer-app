@@ -222,6 +222,7 @@ export function PokemonGridWithFilters({
             id={p.id}
             name={p.name}
             img={p.img}
+            speciesId={p.speciesId}
             types={p.types}
             stats={{
               hp: p.stats.hp,

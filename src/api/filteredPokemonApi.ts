@@ -246,7 +246,8 @@ function convertToEnhancedPokemon(
     return {
       id: pokemon.id,
       name: pokemon.name,
-      img: artworkUrl(speciesId),
+      img: artworkUrl(pokemon.id),
+      speciesId: speciesId,
       types: pokemon.types.map((t) => t.type.name),
       generation,
       stats,

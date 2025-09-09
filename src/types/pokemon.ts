@@ -47,6 +47,7 @@ export type PokemonWithDetails = {
   id: number;
   name: string;
   img: string;
+  speciesId?: number;
   types: string[];
   generation: number;
   stats: {
